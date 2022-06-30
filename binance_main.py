@@ -224,8 +224,12 @@ while True:
     iter_i += 1
     time.sleep(10)
 
-    # 봉차트 데이터 가져오기.
-    df = bn.get_latest_klines_data(symbol=target_symbol, interval=Client.KLINE_INTERVAL_1MINUTE, latest_n=latest_n)
+    try:
+        # 봉차트 데이터 가져오기.
+        df = bn.get_latest_klines_data(symbol=target_symbol, interval=Client.KLINE_INTERVAL_1MINUTE, latest_n=latest_n)
+    except Exception as e:
+        logging.error(e)
+        continue
     
     # 이동평균 계산
     ma_periods = [3, 8]
@@ -321,8 +325,14 @@ while True:
     
     # 최근가격으로 업데이트.(포지션 있는 경우에만.)
     if position_df.shape[0] > 0:
-        # 최근 거래정보 가져오기.
-        recent_trade = bn.get_recent_trades(symbol='BTCUSDT', limit=1)[0]
+
+        try:
+            # 최근 거래정보 가져오기.
+            recent_trade = bn.get_recent_trades(symbol='BTCUSDT', limit=1)[0]
+        except Exception as e:
+            logging.error(e)
+            continue
+        
         # 최근 거래의 시간정보.
         trade_time = pd.to_datetime(recent_trade['time'], unit='ms', utc=True)
 
