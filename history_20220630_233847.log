@@ -1,0 +1,173 @@
+2022-06-30 23:38:48,208 [INFO] < Trading start >
+2022-06-30 23:38:58,322 [INFO] iteration : 1 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:39:08,421 [INFO] iteration : 2 / last 5 cross_signals : [0, 0, 0, 0, -1]
+2022-06-30 23:39:08,422 [INFO]   > Signal 발생 : -1
+2022-06-30 23:39:08,424 [INFO]   > 신규 포지션 진입 완료.
+2022-06-30 23:39:08,432 [INFO]   > 현재 포지션 정보
+    symbol                         open_time open_quote_asset_price position direction close_quote_asset_price                        close_time info ratio
+0  BTCUSDT  2022-06-30 14:39:08.422156+00:00           19022.349609     open     short            19022.349609  2022-06-30 14:39:08.422156+00:00    0   1.0
+2022-06-30 23:39:19,786 [INFO] iteration : 3 / last 5 cross_signals : [0, 0, 0, 0, -1]
+2022-06-30 23:39:19,786 [INFO]   > Signal 발생 : -1
+2022-06-30 23:39:19,787 [INFO]   > 최근 포지션 open time : 2022-06-30 14:39:08.422156+00:00 / current : 2022-06-30 14:39:19.786888+00:00
+2022-06-30 23:39:19,787 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:39:29,942 [INFO] iteration : 4 / last 5 cross_signals : [0, 0, 0, 0, -1]
+2022-06-30 23:39:29,942 [INFO]   > Signal 발생 : -1
+2022-06-30 23:39:29,942 [INFO]   > 최근 포지션 open time : 2022-06-30 14:39:08.422156+00:00 / current : 2022-06-30 14:39:29.942857+00:00
+2022-06-30 23:39:29,943 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:39:40,093 [INFO] iteration : 5 / last 5 cross_signals : [0, 0, 0, 0, -1]
+2022-06-30 23:39:40,094 [INFO]   > Signal 발생 : -1
+2022-06-30 23:39:40,094 [INFO]   > 최근 포지션 open time : 2022-06-30 14:39:08.422156+00:00 / current : 2022-06-30 14:39:40.093988+00:00
+2022-06-30 23:39:40,094 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:39:50,244 [INFO] iteration : 6 / last 5 cross_signals : [0, 0, 0, 0, -1]
+2022-06-30 23:39:50,244 [INFO]   > Signal 발생 : -1
+2022-06-30 23:39:50,244 [INFO]   > 최근 포지션 open time : 2022-06-30 14:39:08.422156+00:00 / current : 2022-06-30 14:39:50.244339+00:00
+2022-06-30 23:39:50,244 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:40:00,447 [INFO] iteration : 7 / last 5 cross_signals : [0, 0, 0, 0, -1]
+2022-06-30 23:40:00,447 [INFO]   > Signal 발생 : -1
+2022-06-30 23:40:00,447 [INFO]   > 최근 포지션 open time : 2022-06-30 14:39:08.422156+00:00 / current : 2022-06-30 14:40:00.447388+00:00
+2022-06-30 23:40:00,447 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:01:00)
+2022-06-30 23:40:10,655 [INFO] iteration : 8 / last 5 cross_signals : [0, 0, 0, -1, 0]
+2022-06-30 23:40:20,836 [INFO] iteration : 9 / last 5 cross_signals : [0, 0, 0, -1, 0]
+2022-06-30 23:40:31,018 [INFO] iteration : 10 / last 5 cross_signals : [0, 0, 0, -1, 0]
+2022-06-30 23:40:41,156 [INFO] iteration : 11 / last 5 cross_signals : [0, 0, 0, -1, 0]
+2022-06-30 23:40:51,338 [INFO] iteration : 12 / last 5 cross_signals : [0, 0, 0, -1, 0]
+2022-06-30 23:41:01,501 [INFO] iteration : 13 / last 5 cross_signals : [0, 0, -1, 0, 0]
+2022-06-30 23:41:11,651 [INFO] iteration : 14 / last 5 cross_signals : [0, 0, -1, 0, 0]
+2022-06-30 23:41:21,803 [INFO] iteration : 15 / last 5 cross_signals : [0, 0, -1, 0, 0]
+2022-06-30 23:41:31,953 [INFO] iteration : 16 / last 5 cross_signals : [0, 0, -1, 0, 0]
+2022-06-30 23:41:42,141 [INFO] iteration : 17 / last 5 cross_signals : [0, 0, -1, 0, 0]
+2022-06-30 23:41:52,346 [INFO] iteration : 18 / last 5 cross_signals : [0, 0, -1, 0, 0]
+2022-06-30 23:42:02,549 [INFO] iteration : 19 / last 5 cross_signals : [0, -1, 0, 0, 0]
+2022-06-30 23:42:12,762 [INFO] iteration : 20 / last 5 cross_signals : [0, -1, 0, 0, 0]
+2022-06-30 23:42:12,811 [INFO]   > position index(0) 포지션 종료. 포지션 지속기간 초과.
+2022-06-30 23:42:22,985 [INFO] iteration : 21 / last 5 cross_signals : [0, -1, 0, 0, 0]
+2022-06-30 23:42:33,148 [INFO] iteration : 22 / last 5 cross_signals : [0, -1, 0, 0, 0]
+2022-06-30 23:42:43,436 [INFO] iteration : 23 / last 5 cross_signals : [0, -1, 0, 0, 0]
+2022-06-30 23:42:53,646 [INFO] iteration : 24 / last 5 cross_signals : [0, -1, 0, 0, 0]
+2022-06-30 23:43:03,960 [INFO] iteration : 25 / last 5 cross_signals : [-1, 0, 0, 0, 0]
+2022-06-30 23:43:14,186 [INFO] iteration : 26 / last 5 cross_signals : [-1, 0, 0, 0, 0]
+2022-06-30 23:43:24,385 [INFO] iteration : 27 / last 5 cross_signals : [-1, 0, 0, 0, 0]
+2022-06-30 23:43:34,578 [INFO] iteration : 28 / last 5 cross_signals : [-1, 0, 0, 0, 0]
+2022-06-30 23:43:44,766 [INFO] iteration : 29 / last 5 cross_signals : [-1, 0, 0, 0, 0]
+2022-06-30 23:43:54,931 [INFO] iteration : 30 / last 5 cross_signals : [-1, 0, 0, 0, 0]
+2022-06-30 23:44:05,112 [INFO] iteration : 31 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:44:15,359 [INFO] iteration : 32 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:44:25,568 [INFO] iteration : 33 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:44:35,875 [INFO] iteration : 34 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:44:46,084 [INFO] iteration : 35 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:44:56,222 [INFO] iteration : 36 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:45:06,411 [INFO] iteration : 37 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:45:16,603 [INFO] iteration : 38 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:45:26,761 [INFO] iteration : 39 / last 5 cross_signals : [0, 0, 0, 0, 1]
+2022-06-30 23:45:26,762 [INFO]   > Signal 발생 : 1
+2022-06-30 23:45:26,762 [INFO]   > 최근 포지션 open time : 2022-06-30 14:39:08.422156+00:00 / current : 2022-06-30 14:45:26.762020+00:00
+2022-06-30 23:45:26,764 [INFO]   > 신규 포지션 진입 완료.
+2022-06-30 23:45:26,775 [INFO]   > 현재 포지션 정보
+    symbol                         open_time open_quote_asset_price  ...                        close_time info     ratio
+0  BTCUSDT  2022-06-30 14:39:08.422156+00:00           19022.349609  ...  2022-06-30 14:42:12.756000+00:00    0  0.999719
+1  BTCUSDT  2022-06-30 14:45:26.762223+00:00           19038.609375  ...  2022-06-30 14:45:26.762223+00:00    0       1.0
+
+[2 rows x 9 columns]
+2022-06-30 23:45:37,533 [INFO] iteration : 40 / last 5 cross_signals : [0, 0, 0, 0, 1]
+2022-06-30 23:45:37,533 [INFO]   > Signal 발생 : 1
+2022-06-30 23:45:37,533 [INFO]   > 최근 포지션 open time : 2022-06-30 14:45:26.762223+00:00 / current : 2022-06-30 14:45:37.533357+00:00
+2022-06-30 23:45:37,533 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:45:47,702 [INFO] iteration : 41 / last 5 cross_signals : [0, 0, 0, 0, 1]
+2022-06-30 23:45:47,702 [INFO]   > Signal 발생 : 1
+2022-06-30 23:45:47,703 [INFO]   > 최근 포지션 open time : 2022-06-30 14:45:26.762223+00:00 / current : 2022-06-30 14:45:47.702902+00:00
+2022-06-30 23:45:47,703 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:45:57,876 [INFO] iteration : 42 / last 5 cross_signals : [0, 0, 0, 0, 1]
+2022-06-30 23:45:57,876 [INFO]   > Signal 발생 : 1
+2022-06-30 23:45:57,876 [INFO]   > 최근 포지션 open time : 2022-06-30 14:45:26.762223+00:00 / current : 2022-06-30 14:45:57.876551+00:00
+2022-06-30 23:45:57,876 [INFO]   > 최근 0:05:00 분 내 진입한 포지션 있음. (차이 : 0:00:00)
+2022-06-30 23:46:08,090 [INFO] iteration : 43 / last 5 cross_signals : [0, 0, 0, 1, 0]
+2022-06-30 23:46:18,396 [INFO] iteration : 44 / last 5 cross_signals : [0, 0, 0, 1, 0]
+2022-06-30 23:46:28,576 [INFO] iteration : 45 / last 5 cross_signals : [0, 0, 0, 1, 0]
+2022-06-30 23:46:38,783 [INFO] iteration : 46 / last 5 cross_signals : [0, 0, 0, 1, 0]
+2022-06-30 23:46:48,963 [INFO] iteration : 47 / last 5 cross_signals : [0, 0, 0, 1, 0]
+2022-06-30 23:46:59,166 [INFO] iteration : 48 / last 5 cross_signals : [0, 0, 0, 1, 0]
+2022-06-30 23:47:09,452 [INFO] iteration : 49 / last 5 cross_signals : [0, 0, 1, 0, 0]
+2022-06-30 23:47:19,656 [INFO] iteration : 50 / last 5 cross_signals : [0, 0, 1, 0, 0]
+2022-06-30 23:47:29,821 [INFO] iteration : 51 / last 5 cross_signals : [0, 0, 1, 0, 0]
+2022-06-30 23:47:39,986 [INFO] iteration : 52 / last 5 cross_signals : [0, 0, 1, 0, 0]
+2022-06-30 23:47:50,202 [INFO] iteration : 53 / last 5 cross_signals : [0, 0, 1, 0, 0]
+2022-06-30 23:48:00,391 [INFO] iteration : 54 / last 5 cross_signals : [0, 0, 1, 0, 0]
+2022-06-30 23:48:10,575 [INFO] iteration : 55 / last 5 cross_signals : [0, 1, 0, 0, 0]
+2022-06-30 23:48:20,889 [INFO] iteration : 56 / last 5 cross_signals : [0, 1, 0, 0, 0]
+2022-06-30 23:48:31,073 [INFO] iteration : 57 / last 5 cross_signals : [0, 1, 0, 0, 0]
+2022-06-30 23:48:31,120 [INFO]   > position index(1) 포지션 종료. 포지션 지속기간 초과.
+2022-06-30 23:48:41,222 [INFO] iteration : 58 / last 5 cross_signals : [0, 1, 0, 0, 0]
+2022-06-30 23:48:51,370 [INFO] iteration : 59 / last 5 cross_signals : [0, 1, 0, 0, 0]
+2022-06-30 23:49:01,554 [INFO] iteration : 60 / last 5 cross_signals : [1, 0, 0, 0, 0]
+2022-06-30 23:49:11,738 [INFO] iteration : 61 / last 5 cross_signals : [1, 0, 0, 0, 0]
+2022-06-30 23:49:21,925 [INFO] iteration : 62 / last 5 cross_signals : [1, 0, 0, 0, 0]
+2022-06-30 23:49:32,074 [INFO] iteration : 63 / last 5 cross_signals : [1, 0, 0, 0, 0]
+2022-06-30 23:49:42,269 [INFO] iteration : 64 / last 5 cross_signals : [1, 0, 0, 0, 0]
+2022-06-30 23:49:52,451 [INFO] iteration : 65 / last 5 cross_signals : [1, 0, 0, 0, 0]
+2022-06-30 23:50:02,632 [INFO] iteration : 66 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:50:12,819 [INFO] iteration : 67 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:50:23,102 [INFO] iteration : 68 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:50:33,272 [INFO] iteration : 69 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:50:43,450 [INFO] iteration : 70 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:50:53,607 [INFO] iteration : 71 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:51:03,758 [INFO] iteration : 72 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:51:13,940 [INFO] iteration : 73 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:51:24,099 [INFO] iteration : 74 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:51:34,251 [INFO] iteration : 75 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:51:44,410 [INFO] iteration : 76 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:51:54,603 [INFO] iteration : 77 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:52:04,764 [INFO] iteration : 78 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:52:14,936 [INFO] iteration : 79 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:52:25,122 [INFO] iteration : 80 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:52:35,287 [INFO] iteration : 81 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:52:45,472 [INFO] iteration : 82 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:52:55,621 [INFO] iteration : 83 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:53:05,772 [INFO] iteration : 84 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:53:15,942 [INFO] iteration : 85 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:53:26,134 [INFO] iteration : 86 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:53:36,290 [INFO] iteration : 87 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:53:46,463 [INFO] iteration : 88 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:53:56,650 [INFO] iteration : 89 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:54:06,814 [INFO] iteration : 90 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:54:17,005 [INFO] iteration : 91 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:54:27,189 [INFO] iteration : 92 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:54:37,345 [INFO] iteration : 93 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:54:47,531 [INFO] iteration : 94 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:54:57,689 [INFO] iteration : 95 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:55:07,862 [INFO] iteration : 96 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:55:18,040 [INFO] iteration : 97 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:55:28,190 [INFO] iteration : 98 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:55:38,392 [INFO] iteration : 99 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:55:48,552 [INFO] iteration : 100 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:55:58,762 [INFO] iteration : 101 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:56:08,938 [INFO] iteration : 102 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:56:19,110 [INFO] iteration : 103 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:56:29,401 [INFO] iteration : 104 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:56:39,605 [INFO] iteration : 105 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:56:49,776 [INFO] iteration : 106 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:56:59,964 [INFO] iteration : 107 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:57:10,170 [INFO] iteration : 108 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:57:20,414 [INFO] iteration : 109 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:57:30,611 [INFO] iteration : 110 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:57:40,825 [INFO] iteration : 111 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:57:50,982 [INFO] iteration : 112 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:58:01,235 [INFO] iteration : 113 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:58:11,417 [INFO] iteration : 114 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:58:21,617 [INFO] iteration : 115 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:58:31,818 [INFO] iteration : 116 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:58:42,026 [INFO] iteration : 117 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:58:52,218 [INFO] iteration : 118 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:59:02,393 [INFO] iteration : 119 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:59:12,595 [INFO] iteration : 120 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:59:22,824 [INFO] iteration : 121 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:59:32,988 [INFO] iteration : 122 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:59:43,199 [INFO] iteration : 123 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-06-30 23:59:53,384 [INFO] iteration : 124 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:00:03,555 [INFO] iteration : 125 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:00:13,719 [INFO] iteration : 126 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:00:23,899 [INFO] iteration : 127 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:00:34,124 [INFO] iteration : 128 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:00:44,278 [INFO] iteration : 129 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:00:54,433 [INFO] iteration : 130 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:01:04,604 [INFO] iteration : 131 / last 5 cross_signals : [0, 0, 0, 0, 0]
+2022-07-01 00:01:14,763 [INFO] iteration : 132 / last 5 cross_signals : [0, 0, 0, 0, 0]
