@@ -1,5 +1,5 @@
 #%%
-# 업비트 API key
+# 업비트 API key(2022.06.30)
 access_key = "YtozFZ6R5lgg3gO0ZhxaJpfX5X8avw1PEJShisVF"
 secret_key = "c6A9yadQVob87xnwBXbuVzafxcDiMb3rOv3hozuK"
 
@@ -45,7 +45,6 @@ KRW_MARKETCAP_TOP_10 = [
     # 'KRW-ATOM',
 ]
 
-ta.PPO
 
 # 로깅 객체
 class MyLog():
