@@ -38,18 +38,18 @@ class myUpbit():
         """주어진 symbol에 대해 가장 최근의 거래(들)을 조회한다.
 
         Args:
-            symbol (str): 업비트에서 사용하는 코인 코드. 1개만 사용 가능.
-            limit (int): 조회할 거래의 개수.
+            symbol (int): 업비트에서 사용하는 코인 코드. 1개만 사용 가능.
+            limit (int, optional): 조회할 거래의 개수. Defaults to 1.
         """
+        
 
         url = f"https://api.upbit.com/v1/trades/ticks?market={symbol}&count={str(limit)}"
         headers = {"Accept": "application/json"}
         
         response = requests.get(url, headers=headers)
-        
-        print(response.text)
+        recent_trade_list = json.loads(response.text)
 
-        return
+        return recent_trade_list
 
     def get_latest_klines_data(self, symbol, interval, latest_n=10, to=''):
         """업비트 코인 캔들 데이터를 업데이트 한다.
@@ -108,5 +108,5 @@ class myUpbit():
 if __name__ == "__main__":
     myupbit = myUpbit()
     # result = myupbit.get_latest_klines_data("KRW-BTC", "1", 10)
-    result = myupbit.get_recent_trades("KRW-BTC", 2)
+    result = myupbit.get_recent_trades("KRW-BTC", 1)
     print(result)
