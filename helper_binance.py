@@ -11,6 +11,9 @@ import time
 import datetime
 import logging
 import sys
+import copy
+
+import helper_general
 
 ###################################################################################################################
 # 바이낸스 api 정보
@@ -28,27 +31,58 @@ logging.basicConfig(
     level=logging.INFO, 
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(f"history_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
+        # logging.FileHandler(f"history_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"),
         logging.StreamHandler(sys.stdout)
         ]
 )
 
 ###################################################################################################################
-class myBinance(Client):
+class MyBinance(Client, helper_general.Exchange):
     # client = Client(API_KEY, SECRET_KEY)
     # Client 클래스가 위와 같이 선언하므로, myBinance도 동일하게 해야 함.
     def __init__(self, api_key, secret_key) -> None:
         super().__init__(api_key, secret_key)
+        logging.info(f"API(or ACCESS) Key : {api_key}")
+        logging.info(f"SECRET Key : {secret_key}")
 
-        # 인스턴스 최초 생성 시, 현재 밸런스와 전체 티커 정보를 얻어온다.
+        # 변수들 초기설정.
+        self.all_symbol_df = None
+        self.all_symbol_dict = None
+
+
+        # 바이낸스 거래소 전체 코인정보 저장.
+        self.set_symbol_info()
+
+        # 현재 밸런스와 전체 티커 정보를 얻어온다.
         self.current_spot_balance_df = self.update_current_spot_balance()
-        self.symbol_info_df = self.update_all_ticker_info()
+        
 
+    def get_recent_trades_list(self, adj_symbol, limit=1):
+        symbol = self.all_symbol_dict[adj_symbol]['symbol']
+        recent_trade_list = self.get_recent_trades(symbol=symbol, limit=limit)
 
-        self.target_symbols = ['BTC', 'ETH', 'BNB']
-        self.usd_symbols = ['USDT', 'USDC', 'BUSD']
+        rename_list = []
+        for trade in recent_trade_list:
+            d = {}
+            d['trade_price'] = float(trade['price'])
+            d['symbol'] = symbol
+            d['adj_symbol'] = adj_symbol
+            d['base_symbol'] = adj_symbol.split('-')[0]
+            d['quote_symbol'] = adj_symbol.split('-')[1]
+            d['timestamp'] = int(trade['time'])
+            rename_list.append(d)
 
-    
+        return rename_list
+
+    def set_symbol_info(self):
+        # 전체 심볼 먼저 불러와서 저장.
+        df = self.get_all_ticker_info()
+        df = df[['adj_symbol', 'symbol', 'base_asset', 'quote_asset', 'status']]
+        df.set_index('adj_symbol', drop=False, inplace=True)
+        self.all_symbol_df = df.copy()
+        self.all_symbol_dict = self.all_symbol_df.to_dict('index')
+        return
+
     def get_latest_klines_data(self, symbol, interval, latest_n=10):
         # api 호출 결과 데이터에 사용할 컬럼명.
         kline_colnames = [
@@ -91,7 +125,7 @@ class myBinance(Client):
 
         return kline_df.copy()
 
-    def update_all_ticker_info(self):
+    def get_all_ticker_info(self):
 
         # 거래소 전체 토큰 정보 불러오기.
         all_info = self.get_exchange_info()
@@ -101,9 +135,10 @@ class myBinance(Client):
         for info in all_info['symbols']:
             row = [info['symbol'], info['status'], info['baseAsset'], info['quoteAsset']]
             rows.append(row)
-        all_symbol_info_df = pd.DataFrame(rows, columns=['symbol', 'status', 'base_asset', 'quote_asset'])
-        
-        return all_symbol_info_df.copy()
+        all_symbol_df = pd.DataFrame(rows, columns=['symbol', 'status', 'base_asset', 'quote_asset'])
+        all_symbol_df['adj_symbol'] = all_symbol_df['base_asset'] + "-" + all_symbol_df['quote_asset']
+        logging.info(f"Binance 전체 코인 정보 저장 완료. 총 {all_symbol_df.shape[0]}개.")
+        return all_symbol_df.copy()
 
     def get_current_spot_balance(self):
         return self.current_spot_balance_df
@@ -194,193 +229,199 @@ def strategy_signal_ma_cross(v1, v2, slope_check_n):
     return df
 
 
+if __name__ == '__main__':
+    my_binance = MyBinance(api_key=API_KEY, secret_key=SECRET_KEY)
+    result = my_binance.get_recent_trades_list(adj_symbol='BTC-USDT', limit=1)
+
+    print(result)
 
 
-###################################################################################################################
-# 포지션 정보를 담고 있는 dataframe.
-position_df = pd.DataFrame(columns=[
-    'symbol',
-    'open_time',
-    'open_quote_asset_price',
-    'position',
-    'direction',
-    'close_quote_asset_price',
-    'close_time',
-    'info',
-    'ratio',
-])
-# 포지션 정보를 담고 있는 list. 각 포지션 정보는 dict.
-position_list = []
+    exit(1)
+    ###################################################################################################################
+    # 포지션 정보를 담고 있는 dataframe.
+    position_df = pd.DataFrame(columns=[
+        'symbol',
+        'open_time',
+        'open_quote_asset_price',
+        'position',
+        'direction',
+        'close_quote_asset_price',
+        'close_time',
+        'info',
+        'ratio',
+    ])
+    # 포지션 정보를 담고 있는 list. 각 포지션 정보는 dict.
+    position_list = []
 
-bn = myBinance(API_KEY, SECRET_KEY)
+    bn = MyBinance(API_KEY, SECRET_KEY)
 
-position_duration = 3
-latest_n = 20
-target_symbol = 'BTCUSDT'
-iter_i = 0
+    position_duration = 3
+    latest_n = 20
+    target_symbol = 'BTCUSDT'
+    iter_i = 0
 
-logging.info("< Trading start >")
-while True:
-    iter_i += 1
-    time.sleep(10)
-
-    try:
-        # 봉차트 데이터 가져오기.
-        df = bn.get_latest_klines_data(symbol=target_symbol, interval=Client.KLINE_INTERVAL_1MINUTE, latest_n=latest_n)
-    except Exception as e:
-        logging.error(e)
-        continue
-    
-    # 이동평균 계산
-    ma_periods = [3, 8]
-    for p in ma_periods:
-        new_colname = f"ma_{p}"
-        df[new_colname] = df['close'].rolling(p).mean()
-
-    # ma cross 전략 시그널 산출
-    signal_df = strategy_signal_ma_cross(df['ma_3'], df['ma_8'], 3)
-    cross_signals = signal_df['signal_cross'].tolist()
-    total_signals = signal_df['signal_total'].tolist()
-
-    # cross_signals[-1] = 1 # 임시 테스트용
-    # 가장 최근의 시그널로 포지션 진입여부 판단.
-    last_signal = cross_signals[-1]
-    
-    
-    logging.info(f"iteration : {iter_i} / last 5 cross_signals : {cross_signals[-5:]}")
-    
-    
-    # 크로스가 발생한 경우.
-    if last_signal != 0:
-        # 현재시간 저장.
-        cur_time = datetime.datetime.now(datetime.timezone.utc)
-        # 포지션 진입여부 저장.
-        enter_position = True
-
-        logging.info(f"  > Signal 발생 : {last_signal}")
-
-        # (이전에 포지션 설정이 있었던 경우) 가장 최근 포지션 진입 시간 가져와서, 현재 시간과 비교하기.
-        if len(position_list) > 0:
-            # 가장 최근에 설정된 포지션만 저장.
-            last_position = position_list[-1]
-            # 해당 포지션 진입시간 저장.
-            last_position_open_time = last_position['open_time']
-            logging.info(f"  > 최근 포지션 open time : {last_position_open_time} / current : {cur_time}")
-
-            # 현재시간 포함 최근 N분 이내 포지션 설정 있는 경우 스킵.
-            # 시간 데이터를 분 단위까지로 저장.
-            last_time_in_mins = last_position_open_time.replace(second=0, microsecond=0)
-            cur_time_in_mins = cur_time.replace(second=0, microsecond=0)
-            min_diff = cur_time_in_mins - last_time_in_mins
-            skip_min = datetime.timedelta(minutes=5)
-            if min_diff <= skip_min:
-                logging.info(f"  > 최근 {skip_min} 분 내 진입한 포지션 있음. (차이 : {min_diff})")
-                enter_position = False
-        
-        # 포지션 진입 조건을 만족하는 경우. 
-        # 포지션 설정 히스토리가 없거나, 최근 설정이 없었던 경우. 포지션 진입.
-        if enter_position:
-            # 현재시간 저장.
-            cur_time = datetime.datetime.now(datetime.timezone.utc)
-
-            # 포지션 설정 정보 딕셔너리 저장.
-            new_position = {
-                'symbol':target_symbol,
-                'open_time':cur_time,
-                'open_quote_asset_price':df.loc[df.index[-1], 'close'],
-                'position':'open',
-                'direction':'long' if last_signal == 1 else 'short',
-                'close_quote_asset_price':df.loc[df.index[-1], 'close'],
-                'close_time':cur_time,
-                'info':total_signals[-1],
-            }
-            new_position['ratio'] = new_position['close_quote_asset_price'] / new_position['open_quote_asset_price']
-            # 리스트에 추가
-            position_list.append(new_position)
-
-            # dataframe에 추가.
-            position_df = pd.concat([position_df, pd.DataFrame(new_position, index=[0])], ignore_index=True)
-
-            logging.info(f"  > 신규 포지션 진입 완료.")
-            logging.info(f"  > 현재 포지션 정보\n{position_df}")
-
-            telegram_text = f"➤ 신규 포지션 진입 완료.({cur_time.strftime('%Y-%m-%d %H:%M:%S')} utc)\n"
-            telegram_text += "\n<b>[ 현재 포지션 정보 ]</b>\n"
-            for idx in position_df.index:
-                t = position_df.loc[idx, 'open_time'].strftime('%m/%d %H:%M')
-                d = position_df.loc[idx, 'direction']
-                p = position_df.loc[idx, 'position']
-                op = round(position_df.loc[idx, 'open_quote_asset_price'], 2)
-                cp = round(position_df.loc[idx, 'close_quote_asset_price'], 2)
-                r = round((cp/op-1)*100, 3)
-                info = position_df.loc[idx, 'info']
-
-                position_text = f"{t}|{d}|{p}|{op}|{cp}|{r}%|{info}"
-
-                if idx == position_df.index[-1]:
-                    telegram_text += "<b>" + position_text + "</b>\n"
-                else:
-                    telegram_text += position_text + "\n"
-            tele_bot.sendMessage(chat_id=TELEGRAM_CHAT_ID, text=telegram_text, parse_mode='HTML')
-    
-    # 최근가격으로 업데이트.(포지션 있는 경우에만.)
-    if position_df.shape[0] > 0:
+    logging.info("< Trading start >")
+    while True:
+        iter_i += 1
+        time.sleep(10)
 
         try:
-            # 최근 거래정보 가져오기.
-            recent_trade = bn.get_recent_trades(symbol='BTCUSDT', limit=1)[0]
+            # 봉차트 데이터 가져오기.
+            df = bn.get_latest_klines_data(symbol=target_symbol, interval=Client.KLINE_INTERVAL_1MINUTE, latest_n=latest_n)
         except Exception as e:
             logging.error(e)
             continue
         
-        # 최근 거래의 시간정보.
-        trade_time = pd.to_datetime(recent_trade['time'], unit='ms', utc=True)
+        # 이동평균 계산
+        ma_periods = [3, 8]
+        for p in ma_periods:
+            new_colname = f"ma_{p}"
+            df[new_colname] = df['close'].rolling(p).mean()
 
-        # 현재 유지중인(open) 포지션에 대해서만 현재가격으로 업데이트 한다.
-        open_position_index = position_df[position_df['position'] == 'open'].index
-        for idx in open_position_index:
-            # 최근가격, 최근시간으로 업데이트.
-            position_df.loc[idx, 'close_quote_asset_price'] = float(recent_trade['price'])
-            position_df.loc[idx, 'close_time'] = trade_time
-            # 포지션 진입 시간에서 일정 시간이 지난 경우 포지션 종료.
-            if trade_time - position_df.loc[idx, 'open_time'] >= datetime.timedelta(minutes=position_duration):
-                position_df.loc[idx, 'position'] = 'closed'
-                logging.info(f"  > position index({idx}) 포지션 종료. 포지션 지속기간 초과.")
+        # ma cross 전략 시그널 산출
+        signal_df = strategy_signal_ma_cross(df['ma_3'], df['ma_8'], 3)
+        cross_signals = signal_df['signal_cross'].tolist()
+        total_signals = signal_df['signal_total'].tolist()
 
-        # 수익률 계산
-        position_df['ratio'] = position_df['close_quote_asset_price'] / position_df['open_quote_asset_price']
-        position_df.to_csv('position.csv')
+        # cross_signals[-1] = 1 # 임시 테스트용
+        # 가장 최근의 시그널로 포지션 진입여부 판단.
+        last_signal = cross_signals[-1]
+        
+        
+        logging.info(f"iteration : {iter_i} / last 5 cross_signals : {cross_signals[-5:]}")
+        
+        
+        # 크로스가 발생한 경우.
+        if last_signal != 0:
+            # 현재시간 저장.
+            cur_time = datetime.datetime.now(datetime.timezone.utc)
+            # 포지션 진입여부 저장.
+            enter_position = True
+
+            logging.info(f"  > Signal 발생 : {last_signal}")
+
+            # (이전에 포지션 설정이 있었던 경우) 가장 최근 포지션 진입 시간 가져와서, 현재 시간과 비교하기.
+            if len(position_list) > 0:
+                # 가장 최근에 설정된 포지션만 저장.
+                last_position = position_list[-1]
+                # 해당 포지션 진입시간 저장.
+                last_position_open_time = last_position['open_time']
+                logging.info(f"  > 최근 포지션 open time : {last_position_open_time} / current : {cur_time}")
+
+                # 현재시간 포함 최근 N분 이내 포지션 설정 있는 경우 스킵.
+                # 시간 데이터를 분 단위까지로 저장.
+                last_time_in_mins = last_position_open_time.replace(second=0, microsecond=0)
+                cur_time_in_mins = cur_time.replace(second=0, microsecond=0)
+                min_diff = cur_time_in_mins - last_time_in_mins
+                skip_min = datetime.timedelta(minutes=5)
+                if min_diff <= skip_min:
+                    logging.info(f"  > 최근 {skip_min} 분 내 진입한 포지션 있음. (차이 : {min_diff})")
+                    enter_position = False
+            
+            # 포지션 진입 조건을 만족하는 경우. 
+            # 포지션 설정 히스토리가 없거나, 최근 설정이 없었던 경우. 포지션 진입.
+            if enter_position:
+                # 현재시간 저장.
+                cur_time = datetime.datetime.now(datetime.timezone.utc)
+
+                # 포지션 설정 정보 딕셔너리 저장.
+                new_position = {
+                    'symbol':target_symbol,
+                    'open_time':cur_time,
+                    'open_quote_asset_price':df.loc[df.index[-1], 'close'],
+                    'position':'open',
+                    'direction':'long' if last_signal == 1 else 'short',
+                    'close_quote_asset_price':df.loc[df.index[-1], 'close'],
+                    'close_time':cur_time,
+                    'info':total_signals[-1],
+                }
+                new_position['ratio'] = new_position['close_quote_asset_price'] / new_position['open_quote_asset_price']
+                # 리스트에 추가
+                position_list.append(new_position)
+
+                # dataframe에 추가.
+                position_df = pd.concat([position_df, pd.DataFrame(new_position, index=[0])], ignore_index=True)
+
+                logging.info(f"  > 신규 포지션 진입 완료.")
+                logging.info(f"  > 현재 포지션 정보\n{position_df}")
+
+                telegram_text = f"➤ 신규 포지션 진입 완료.({cur_time.strftime('%Y-%m-%d %H:%M:%S')} utc)\n"
+                telegram_text += "\n<b>[ 현재 포지션 정보 ]</b>\n"
+                for idx in position_df.index:
+                    t = position_df.loc[idx, 'open_time'].strftime('%m/%d %H:%M')
+                    d = position_df.loc[idx, 'direction']
+                    p = position_df.loc[idx, 'position']
+                    op = round(position_df.loc[idx, 'open_quote_asset_price'], 2)
+                    cp = round(position_df.loc[idx, 'close_quote_asset_price'], 2)
+                    r = round((cp/op-1)*100, 3)
+                    info = position_df.loc[idx, 'info']
+
+                    position_text = f"{t}|{d}|{p}|{op}|{cp}|{r}%|{info}"
+
+                    if idx == position_df.index[-1]:
+                        telegram_text += "<b>" + position_text + "</b>\n"
+                    else:
+                        telegram_text += position_text + "\n"
+                tele_bot.sendMessage(chat_id=TELEGRAM_CHAT_ID, text=telegram_text, parse_mode='HTML')
+        
+        # 최근가격으로 업데이트.(포지션 있는 경우에만.)
+        if position_df.shape[0] > 0:
+
+            try:
+                # 최근 거래정보 가져오기.
+                recent_trade = bn.get_recent_trades_list(symbol='BTCUSDT', limit=1)[0]
+            except Exception as e:
+                logging.error(e)
+                continue
+            
+            # 최근 거래의 시간정보.
+            trade_time = pd.to_datetime(recent_trade['time'], unit='ms', utc=True)
+
+            # 현재 유지중인(open) 포지션에 대해서만 현재가격으로 업데이트 한다.
+            open_position_index = position_df[position_df['position'] == 'open'].index
+            for idx in open_position_index:
+                # 최근가격, 최근시간으로 업데이트.
+                position_df.loc[idx, 'close_quote_asset_price'] = float(recent_trade['price'])
+                position_df.loc[idx, 'close_time'] = trade_time
+                # 포지션 진입 시간에서 일정 시간이 지난 경우 포지션 종료.
+                if trade_time - position_df.loc[idx, 'open_time'] >= datetime.timedelta(minutes=position_duration):
+                    position_df.loc[idx, 'position'] = 'closed'
+                    logging.info(f"  > position index({idx}) 포지션 종료. 포지션 지속기간 초과.")
+
+            # 수익률 계산
+            position_df['ratio'] = position_df['close_quote_asset_price'] / position_df['open_quote_asset_price']
+            position_df.to_csv('position.csv')
 
 
 
 
-# fig = mpf.figure(style='charles',figsize=(7,8))
-# ax1 = fig.add_subplot(2,1,1)
-# ax2 = fig.add_subplot(3,1,3)   
-    
-# def animate(i):
-    # # 차트 초기화
-    # ax1.clear()
-    # ax2.clear()
+    # fig = mpf.figure(style='charles',figsize=(7,8))
+    # ax1 = fig.add_subplot(2,1,1)
+    # ax2 = fig.add_subplot(3,1,3)   
+        
+    # def animate(i):
+        # # 차트 초기화
+        # ax1.clear()
+        # ax2.clear()
 
-    # # 차트 생성시 계산되는 값들 저장할 dict.
-    # cv = {}
+        # # 차트 생성시 계산되는 값들 저장할 dict.
+        # cv = {}
 
-    # # 봉차트 생성 및 추가 계산 처리.
-    # mpf.plot(df, ax=ax1, volume=ax2, type='candle', mav=(5,10,25), return_calculated_values=cv)
+        # # 봉차트 생성 및 추가 계산 처리.
+        # mpf.plot(df, ax=ax1, volume=ax2, type='candle', mav=(5,10,25), return_calculated_values=cv)
 
-# ani = FuncAnimation(fig, animate, interval=1000)
-# mpf.show()
+    # ani = FuncAnimation(fig, animate, interval=1000)
+    # mpf.show()
 
 
 
-# print(res)
-# print("type :", type(res))
-# print("length :", len(res))
+    # print(res)
+    # print("type :", type(res))
+    # print("length :", len(res))
 
-# if type(res) == type({}):
-#     for k, v in res.items():
-#         print(k)
-# elif type(res) == type([]):
-#     for k, v in res[0].items():
-#         print(k, ":", v)
+    # if type(res) == type({}):
+    #     for k, v in res.items():
+    #         print(k)
+    # elif type(res) == type([]):
+    #     for k, v in res[0].items():
+    #         print(k, ":", v)
