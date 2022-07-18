@@ -60,11 +60,12 @@ class MyBinance(Client, helper_general.Exchange):
     def get_recent_trades_list(self, adj_symbol, limit=1):
         symbol = self.all_symbol_dict[adj_symbol]['symbol']
         recent_trade_list = self.get_recent_trades(symbol=symbol, limit=limit)
-
+        
         rename_list = []
         for trade in recent_trade_list:
             d = {}
             d['trade_price'] = float(trade['price'])
+            d['trade_volume'] = float(trade['qty'])
             d['symbol'] = symbol
             d['adj_symbol'] = adj_symbol
             d['base_symbol'] = adj_symbol.split('-')[0]

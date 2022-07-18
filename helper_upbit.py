@@ -111,6 +111,7 @@ class MyUpbit(helper_general.Exchange):
         for trade in recent_trade_list:
             d = {}
             d['trade_price'] = float(trade['trade_price'])
+            d['trade_volume'] = float(trade['trade_volume'])
             d['symbol'] = trade['market']
             d['adj_symbol'] = adj_symbol
             d['base_symbol'] = adj_symbol.split('-')[0]
