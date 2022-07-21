@@ -47,15 +47,25 @@ class MyUpbit(helper_general.Exchange):
         logging.info(f"SECRET Key : {secret_key}")
 
         # 변수들 초기설정.
-        self.all_symbol_df = None
-        self.all_symbol_dict = None
+        self.spot_symbols_df = None
+        self.spot_symbols_dict = None
 
         # 업비트 거래소 전체 코인정보 저장.
-        self.set_symbol_info()
+        self.set_spot_exchange_info()
     
-    def set_symbol_info(self):
+    def set_spot_exchange_info(self):
         # 전체 심볼 먼저 불러와서 저장.
-        df = self.get_all_ticker_info()
+        url = "https://api.upbit.com/v1/market/all"
+
+        querystring = {"isDetails":"true"} # 유의종목 여부 포함
+        headers = {"Accept": "application/json"}
+        response = requests.request("GET", url, headers=headers, params=querystring)
+
+        # 전체 코인 정보 Dict로 저장.
+        all_symbol_info = json.loads(response.text)
+        # 데이터프레임으로 변환하여 저장.
+        df = pd.DataFrame(all_symbol_info)
+
         rename_dict = {
             'market':'symbol',
             'market_warning':'status',
@@ -68,9 +78,9 @@ class MyUpbit(helper_general.Exchange):
         # df = df[['adj_symbol', 'symbol', 'base_asset', 'quote_asset', 'status', 'korean_name', 'english_name']]
         df = df[['adj_symbol', 'symbol', 'base_asset', 'quote_asset', 'status']]
         df.set_index('adj_symbol', drop=False, inplace=True)
-        self.all_symbol_df = df.copy()
-        self.all_symbol_dict = self.all_symbol_df.to_dict('index')
-
+        self.spot_symbols_df = df.copy()
+        self.spot_symbols_dict = self.spot_symbols_df.to_dict('index')
+        logging.info(f"Upbit(SPOT) 전체 코인 정보 저장 완료. 총 {self.spot_symbols_df.shape[0]}개.")
         return
 
     def get_all_ticker_info(self):
@@ -84,14 +94,23 @@ class MyUpbit(helper_general.Exchange):
             # 전체 코인 정보 Dict로 저장.
             all_symbol_info = json.loads(response.text)
             # 데이터프레임으로 변환하여 저장.
-            all_symbol_df = pd.DataFrame(all_symbol_info)
-            logging.info(f"Upbit 전체 코인 정보 저장 완료. 총 {all_symbol_df.shape[0]}개.")
-            return all_symbol_df
+            spot_symbols_df = pd.DataFrame(all_symbol_info)
+            logging.info(f"Upbit 전체 코인 정보 저장 완료. 총 {spot_symbols_df.shape[0]}개.")
+            return spot_symbols_df
         except:
             logging.error("Upbit 코인정보 API호출 실패.")
             exit(1)
 
-    def get_recent_trades_list(self, adj_symbol, limit=1):
+    def get_spot_order_book_by_adj_symbol(self, adj_symbol, order_n=10):
+        symbol = self.spot_symbols_dict[adj_symbol]['symbol']
+        url = f"https://api.upbit.com/v1/orderbook?markets={symbol}"
+        headers = {"Accept": "application/json"}
+        response = requests.get(url, headers=headers)
+        recent_trade_list = json.loads(response.text)
+        print(recent_trade_list)
+        return
+
+    def get_spot_recent_trades_by_adj_symbol(self, adj_symbol, limit=1):
         """주어진 adj_symbol에 대해 가장 최근의 거래(들)을 조회한다.
 
         Args:
@@ -99,7 +118,7 @@ class MyUpbit(helper_general.Exchange):
             limit (int, optional): 조회할 거래의 개수. Defaults to 1.
         """
         
-        symbol = self.all_symbol_dict[adj_symbol]['symbol']
+        symbol = self.spot_symbols_dict[adj_symbol]['symbol']
 
         url = f"https://api.upbit.com/v1/trades/ticks?market={symbol}&count={str(limit)}"
         headers = {"Accept": "application/json"}
@@ -178,5 +197,6 @@ class MyUpbit(helper_general.Exchange):
 if __name__ == "__main__":
     my_upbit = MyUpbit(api_key=ACCESS_KEY, secret_key=SECRET_KEY)
     # result = MyUpbit.get_latest_klines_data("KRW-BTC", "1", 10)
-    result = my_upbit.get_recent_trades_list("BTC-KRW", 1)
+    # result = my_upbit.get_spot_recent_trades_by_adj_symbol("BTC-KRW", 1)
+    result = my_upbit.get_spot_order_book_by_adj_symbol("BTC-KRW", 10)
     print(result)

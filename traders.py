@@ -70,9 +70,11 @@ class ExchangeArbitrager(Arbitrager):
 
         # 모든 베이스-세컨더리 심볼 페어에 대해 각각 조회.
         for base_ex_symbol, secondary_ex_symbol in symbol_pairs_dict.items():
-            # recent_n개 만큼의 최근 거래 데이터 조회(현물 데이터임).
-            base_ex_recent_trade_list = self.base_ex_helper.get_recent_trades_list(adj_symbol=base_ex_symbol, limit=trade_recent_n)
-            secondary_ex_recent_trade_list = self.secondary_ex_helper.get_recent_trades_list(adj_symbol=secondary_ex_symbol, limit=trade_recent_n)
+            ################################################################################################
+            # 현물 거래 데이터
+            # recent_n개 만큼의 최근 거래 데이터 조회.
+            base_ex_recent_trade_list = self.base_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=base_ex_symbol, limit=trade_recent_n)
+            secondary_ex_recent_trade_list = self.secondary_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=secondary_ex_symbol, limit=trade_recent_n)
             # 최근 거래들을 dataframe 형태로 저장.
             base_ex_recent_trade_df = pd.DataFrame.from_dict(base_ex_recent_trade_list)
             secondary_ex_recent_trade_df = pd.DataFrame.from_dict(secondary_ex_recent_trade_list)
@@ -115,8 +117,8 @@ class ExchangeArbitrager(Arbitrager):
         
         result_list = []
         for base_ex_symbol, secondary_ex_symbol in symbol_pairs_dict.items():
-            base_ex_recent_trade_list = self.base_ex_helper.get_recent_trades_list(adj_symbol=base_ex_symbol, limit=trade_recent_n)
-            secondary_ex_recent_trade_list = self.secondary_ex_helper.get_recent_trades_list(adj_symbol=secondary_ex_symbol, limit=trade_recent_n)
+            base_ex_recent_trade_list = self.base_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=base_ex_symbol, limit=trade_recent_n)
+            secondary_ex_recent_trade_list = self.secondary_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=secondary_ex_symbol, limit=trade_recent_n)
 
             base_ex_latest_trade = base_ex_recent_trade_list[0]
             secondary_ex_latest_trade = secondary_ex_recent_trade_list[0]

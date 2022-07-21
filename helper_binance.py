@@ -6,12 +6,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import mplfinance as mpf
+import requests
 import telegram
 import time
 import datetime
 import logging
 import sys
 import copy
+import json
 
 import helper_general
 
@@ -46,19 +48,128 @@ class MyBinance(Client, helper_general.Exchange):
         logging.info(f"SECRET Key : {secret_key}")
 
         # 변수들 초기설정.
-        self.all_symbol_df = None
-        self.all_symbol_dict = None
-
+        # 현물시장 심볼(티커) 정보.
+        self.spot_symbols_df = None
+        self.spot_symbols_dict = None
+        # 선물시장 심볼(티커) 정보.
+        self.futures_symbols_df = None
+        self.futures_symbols_dict = None
 
         # 바이낸스 거래소 전체 코인정보 저장.
-        self.set_symbol_info()
+        self.set_spot_exchange_info()
+        self.set_futures_exchange_info()
 
         # 현재 밸런스와 전체 티커 정보를 얻어온다.
         self.current_spot_balance_df = self.update_current_spot_balance()
-        
+    
+    def set_spot_exchange_info(self):
 
-    def get_recent_trades_list(self, adj_symbol, limit=1):
-        symbol = self.all_symbol_dict[adj_symbol]['symbol']
+        # 거래소 전체 토큰 정보 불러오기.(현물시장)
+        all_info = self.get_exchange_info()
+        rows = []
+        
+        # 필요한 정보(티커, 상태, base, quote)만 데이터프레임으로 저장.
+        for info in all_info['symbols']:
+            row = [info['symbol'], info['status'], info['baseAsset'], info['quoteAsset']]
+            rows.append(row)
+        spot_symbols_df = pd.DataFrame(rows, columns=['symbol', 'status', 'base_asset', 'quote_asset'])
+        spot_symbols_df['adj_symbol'] = spot_symbols_df['base_asset'] + "-" + spot_symbols_df['quote_asset']
+
+        spot_symbols_df = spot_symbols_df[['adj_symbol', 'symbol', 'base_asset', 'quote_asset', 'status']]
+        spot_symbols_df.set_index('adj_symbol', drop=False, inplace=True)
+
+        # 객체변수에 저장.
+        self.spot_symbols_df = spot_symbols_df.copy()
+        self.spot_symbols_dict = self.spot_symbols_df.to_dict('index')
+
+        logging.info(f"Binance(SPOT) 전체 코인 정보 저장 완료. 총 {self.spot_symbols_df.shape[0]}개.")
+        return
+    
+    def set_futures_exchange_info(self):
+
+        # 거래소 전체 토큰 정보 불러오기.(선물시장)
+        url = "https://fapi.binance.com/fapi/v1/exchangeInfo"
+        response = requests.get(url)
+        all_info = json.loads(response.text)
+        rows = []
+        
+        # 필요한 정보(티커, 상태, base, quote)만 데이터프레임으로 저장.
+        for info in all_info['symbols']:
+            row = [info['symbol'], info['status'], info['baseAsset'], info['quoteAsset'], info['contractType']]
+            rows.append(row)
+        df = pd.DataFrame(rows, columns=['symbol', 'status', 'base_asset', 'quote_asset', 'contract_type'])
+        df['adj_symbol'] = df['base_asset'] + "-" + df['quote_asset']
+
+        df = df[['adj_symbol', 'symbol', 'base_asset', 'quote_asset', 'status', 'contract_type']]
+        df = df[df['contract_type']=="PERPETUAL"]
+        df.set_index('adj_symbol', drop=False, inplace=True)
+        df.to_csv('fut_symbols.csv')
+        # 객체변수에 저장.
+        self.futures_symbols_df = df.copy()
+        self.futures_symbols_dict = self.futures_symbols_df.to_dict('index')
+
+        logging.info(f"Binance(FUTURES) 전체 코인 정보 저장 완료. 총 {self.futures_symbols_df.shape[0]}개.")
+
+        return
+
+    def get_spot_order_book_by_adj_symbol(self, adj_symbol, order_n=10):
+        """
+        Response 형식.
+        {
+            "lastUpdateId": 1027024,
+            "bids": [
+                [
+                "4.00000000",     // PRICE
+                "431.00000000"    // QTY
+                ]
+            ],
+            "asks": [
+                [
+                "4.00000200",
+                "12.00000000"
+                ]
+            ]
+        }
+        """
+        symbol = self.spot_symbols_dict[adj_symbol]['symbol']
+        # 호가정보 저장.
+        order_book = self.get_order_book(symbol=symbol)
+        order_book['bids'] = order_book['bids'][0:order_n] # 맨 처음이 최우선매수호가. 가장 높은 가격.
+        order_book['asks'] = order_book['asks'][0:order_n] # 맨 처음이 최우선매도호가. 가장 낮은 가격.
+        return order_book
+
+    def get_futures_order_book_by_adj_symbol(self, adj_symbol, order_n=10):
+        """
+        Response 형식.
+        {
+            "lastUpdateId": 1027024,
+            "E": 1589436922972,   // Message output time
+            "T": 1589436922959,   // Transaction time
+            "bids": [
+                [
+                "4.00000000",     // PRICE
+                "431.00000000"    // QTY
+                ]
+            ],
+            "asks": [
+                [
+                "4.00000200",
+                "12.00000000"
+                ]
+            ]
+        }
+        """
+        symbol = self.spot_symbols_dict[adj_symbol]['symbol']
+        # 호가정보 저장.
+        url = f"https://fapi.binance.com/fapi/v1/depth?symbol={symbol}&limit={order_n}"
+        response = requests.get(url)
+        order_book = json.loads(response.text)
+        order_book['bids'] = order_book['bids'][0:order_n] # 맨 처음이 최우선매수호가. 가장 높은 가격.
+        order_book['asks'] = order_book['asks'][0:order_n] # 맨 처음이 최우선매도호가. 가장 낮은 가격.
+        return order_book
+
+    def get_spot_recent_trades_by_adj_symbol(self, adj_symbol, limit=1):
+        symbol = self.spot_symbols_dict[adj_symbol]['symbol']
         recent_trade_list = self.get_recent_trades(symbol=symbol, limit=limit)
         
         rename_list = []
@@ -74,15 +185,6 @@ class MyBinance(Client, helper_general.Exchange):
             rename_list.append(d)
 
         return rename_list
-
-    def set_symbol_info(self):
-        # 전체 심볼 먼저 불러와서 저장.
-        df = self.get_all_ticker_info()
-        df = df[['adj_symbol', 'symbol', 'base_asset', 'quote_asset', 'status']]
-        df.set_index('adj_symbol', drop=False, inplace=True)
-        self.all_symbol_df = df.copy()
-        self.all_symbol_dict = self.all_symbol_df.to_dict('index')
-        return
 
     def get_latest_klines_data(self, symbol, interval, latest_n=10):
         # api 호출 결과 데이터에 사용할 컬럼명.
@@ -126,20 +228,7 @@ class MyBinance(Client, helper_general.Exchange):
 
         return kline_df.copy()
 
-    def get_all_ticker_info(self):
-
-        # 거래소 전체 토큰 정보 불러오기.
-        all_info = self.get_exchange_info()
-        rows = []
-        
-        # 필요한 정보(티커, 상태, base, quote)만 데이터프레임으로 저장.
-        for info in all_info['symbols']:
-            row = [info['symbol'], info['status'], info['baseAsset'], info['quoteAsset']]
-            rows.append(row)
-        all_symbol_df = pd.DataFrame(rows, columns=['symbol', 'status', 'base_asset', 'quote_asset'])
-        all_symbol_df['adj_symbol'] = all_symbol_df['base_asset'] + "-" + all_symbol_df['quote_asset']
-        logging.info(f"Binance 전체 코인 정보 저장 완료. 총 {all_symbol_df.shape[0]}개.")
-        return all_symbol_df.copy()
+    
 
     def get_current_spot_balance(self):
         return self.current_spot_balance_df
@@ -232,7 +321,9 @@ def strategy_signal_ma_cross(v1, v2, slope_check_n):
 
 if __name__ == '__main__':
     my_binance = MyBinance(api_key=API_KEY, secret_key=SECRET_KEY)
-    result = my_binance.get_recent_trades_list(adj_symbol='BTC-USDT', limit=1)
+    # result = my_binance.get_spot_recent_trades_by_adj_symbol(adj_symbol='BTC-USDT', limit=1)
+    result = my_binance.get_spot_order_book_by_adj_symbol(adj_symbol='BTC-USDT')
+    result = my_binance.get_futures_order_book_by_adj_symbol(adj_symbol='BTC-USDT')
 
     print(result)
 
@@ -370,7 +461,7 @@ if __name__ == '__main__':
 
             try:
                 # 최근 거래정보 가져오기.
-                recent_trade = bn.get_recent_trades_list(symbol='BTCUSDT', limit=1)[0]
+                recent_trade = bn.get_recent_trades(symbol='BTCUSDT', limit=1)[0]
             except Exception as e:
                 logging.error(e)
                 continue
