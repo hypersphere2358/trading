@@ -83,32 +83,24 @@ class MyUpbit(helper_general.Exchange):
         logging.info(f"Upbit(SPOT) 전체 코인 정보 저장 완료. 총 {self.spot_symbols_df.shape[0]}개.")
         return
 
-    def get_all_ticker_info(self):
-        try:
-            url = "https://api.upbit.com/v1/market/all"
-
-            querystring = {"isDetails":"true"} # 유의종목 여부 포함
-            headers = {"Accept": "application/json"}
-            response = requests.request("GET", url, headers=headers, params=querystring)
-
-            # 전체 코인 정보 Dict로 저장.
-            all_symbol_info = json.loads(response.text)
-            # 데이터프레임으로 변환하여 저장.
-            spot_symbols_df = pd.DataFrame(all_symbol_info)
-            logging.info(f"Upbit 전체 코인 정보 저장 완료. 총 {spot_symbols_df.shape[0]}개.")
-            return spot_symbols_df
-        except:
-            logging.error("Upbit 코인정보 API호출 실패.")
-            exit(1)
-
     def get_spot_order_book_by_adj_symbol(self, adj_symbol, order_n=10):
         symbol = self.spot_symbols_dict[adj_symbol]['symbol']
         url = f"https://api.upbit.com/v1/orderbook?markets={symbol}"
         headers = {"Accept": "application/json"}
         response = requests.get(url, headers=headers)
         recent_trade_list = json.loads(response.text)
-        print(recent_trade_list)
-        return
+
+        bid_ask_list = recent_trade_list[0]['orderbook_units']
+        bids = []
+        asks = []
+        for bid_ask in bid_ask_list:
+            bids.append([bid_ask['bid_price'], bid_ask['bid_size']])
+            asks.append([bid_ask['ask_price'], bid_ask['ask_size']])
+
+        orderbook = {}
+        orderbook['bids'] = bids[0:order_n]
+        orderbook['asks'] = asks[0:order_n]
+        return orderbook
 
     def get_spot_recent_trades_by_adj_symbol(self, adj_symbol, limit=1):
         """주어진 adj_symbol에 대해 가장 최근의 거래(들)을 조회한다.

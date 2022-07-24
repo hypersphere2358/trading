@@ -64,51 +64,9 @@ class ExchangeArbitrager(Arbitrager):
             self.secondary_ex_helper = None
         return
     
-    def get_market_data(self, symbol_pairs_dict, trade_recent_n=10):
-        # 결과들을 저장할 리스트
-        result_list = []
+    def calculate_symbol_pairs_ratio(self, symbol_pairs_dict, index_value, recent_trades_n=10, orderbook_n=10):
 
-        # 모든 베이스-세컨더리 심볼 페어에 대해 각각 조회.
-        for base_ex_symbol, secondary_ex_symbol in symbol_pairs_dict.items():
-            ################################################################################################
-            # 현물 거래 데이터
-            # recent_n개 만큼의 최근 거래 데이터 조회.
-            base_ex_recent_trade_list = self.base_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=base_ex_symbol, limit=trade_recent_n)
-            secondary_ex_recent_trade_list = self.secondary_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=secondary_ex_symbol, limit=trade_recent_n)
-            # 최근 거래들을 dataframe 형태로 저장.
-            base_ex_recent_trade_df = pd.DataFrame.from_dict(base_ex_recent_trade_list)
-            secondary_ex_recent_trade_df = pd.DataFrame.from_dict(secondary_ex_recent_trade_list)
 
-            # 가장 최근의 거래 데이터는 별도 저장.
-            base_ex_latest_trade = base_ex_recent_trade_list[0]
-            secondary_ex_latest_trade = secondary_ex_recent_trade_list[0]
-            
-            # 현물 최근 거래가격의 가중평균 계산.
-            base_ex_quote_qty_wavg = np.average(base_ex_recent_trade_df['trade_price'], weights=base_ex_recent_trade_df['trade_volume'])
-            secondary_ex_quote_qty_wavg = np.average(secondary_ex_recent_trade_df['trade_price'], weights=secondary_ex_recent_trade_df['trade_volume'])
-            
-            # 필요한 데이터들 계산 및 dict에 저장.
-            exchange_ratio = base_ex_quote_qty_wavg / secondary_ex_quote_qty_wavg
-            vehicle_symbol = base_ex_latest_trade['base_symbol']
-            base_ex_quote = base_ex_latest_trade['quote_symbol']
-            base_ex_trade_price = base_ex_latest_trade['trade_price']
-            secondary_ex_quote = secondary_ex_latest_trade['quote_symbol']
-            secondary_ex_trade_price = secondary_ex_latest_trade['trade_price']
-
-            result_dict = {}
-            result_dict['vehicle_symbol'] = vehicle_symbol
-            result_dict['base_ex_quote'] = base_ex_quote
-            result_dict['base_ex_trade_price'] = base_ex_trade_price
-            result_dict['secondary_ex_quote'] = secondary_ex_quote
-            result_dict['secondary_ex_trade_price'] = secondary_ex_trade_price
-            result_dict['exchange_ratio'] = exchange_ratio
-            result_dict['timestamp'] = int(time.mktime(datetime.datetime.now().timetuple())*1000)
-            result_list.append(result_dict)
-            
-            # logging.info(f"Target : {vehicle_symbol}, {base_ex_quote}-{secondary_ex_quote} 비율 : {exchange_ratio:,.4f} (최근 {trade_recent_n}개)")
-        return result_list
-
-    def calculate_symbol_pairs_ratio(self, symbol_pairs_dict, trade_recent_n=10):
         # 고려해야 할 것들. (7.13)
         # 차익거래 기회 발생 시, 포지션 진입에는 숏포지션이 필요하다.
         # 즉, 실제 숏포지션 진입 거래를 하기 위해서는 마진(또는 선물)거래의 가격데이터가 필요함.
@@ -117,33 +75,91 @@ class ExchangeArbitrager(Arbitrager):
         
         result_list = []
         for base_ex_symbol, secondary_ex_symbol in symbol_pairs_dict.items():
-            base_ex_recent_trade_list = self.base_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=base_ex_symbol, limit=trade_recent_n)
-            secondary_ex_recent_trade_list = self.secondary_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=secondary_ex_symbol, limit=trade_recent_n)
+            ################################################################################
+            # 필요한 데이터 불러오기.
+            # 1) base exchange
+            # recent trades(spot), orberbook(spot)
+            base_ex_spot_recent_trades = self.base_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=base_ex_symbol, limit=recent_trades_n)
+            base_ex_spot_orderbook = self.base_ex_helper.get_spot_order_book_by_adj_symbol(adj_symbol=base_ex_symbol, order_n=orderbook_n)
 
-            base_ex_latest_trade = base_ex_recent_trade_list[0]
-            secondary_ex_latest_trade = secondary_ex_recent_trade_list[0]
-
-            base_ex_recent_trade_df = pd.DataFrame.from_dict(base_ex_recent_trade_list)
-            secondary_ex_recent_trade_df = pd.DataFrame.from_dict(secondary_ex_recent_trade_list)
-
-            base_ex_quote_qty_wavg = np.average(base_ex_recent_trade_df['trade_price'], weights=base_ex_recent_trade_df['trade_volume'])
-            secondary_ex_quote_qty_wavg = np.average(secondary_ex_recent_trade_df['trade_price'], weights=secondary_ex_recent_trade_df['trade_volume'])
+            # 2) secondary exchange
+            # recent trades(spot), orberbook(spot)
+            secondary_ex_spot_recent_trades = self.secondary_ex_helper.get_spot_recent_trades_by_adj_symbol(adj_symbol=secondary_ex_symbol, limit=recent_trades_n)
+            secondary_ex_spot_orderbook = self.secondary_ex_helper.get_spot_order_book_by_adj_symbol(adj_symbol=secondary_ex_symbol, order_n=orderbook_n)
+            # recent trades(futures), orberbook(futures)
+            secondary_ex_futures_recent_trades = self.secondary_ex_helper.get_futures_recent_trade_by_adj_symbol(adj_symbol=secondary_ex_symbol, limit=recent_trades_n)
+            secondary_ex_futures_orderbook = self.secondary_ex_helper.get_futures_order_book_by_adj_symbol(adj_symbol=secondary_ex_symbol, order_n=orderbook_n)
             
 
-            exchange_ratio = base_ex_quote_qty_wavg / secondary_ex_quote_qty_wavg
-            vehicle_symbol = base_ex_latest_trade['base_ex_symbol']
-            base_ex_quote = base_ex_latest_trade['quote_symbol']
-            secondary_ex_quote = secondary_ex_latest_trade['quote_symbol']
+            ################################################################################
+            # 형식에 맞추어 저장하기.
+            base_ex_spot_recent_trades_df = pd.DataFrame.from_dict(base_ex_spot_recent_trades)
+            secondary_ex_spot_recent_trades_df = pd.DataFrame.from_dict(secondary_ex_spot_recent_trades)
+            secondary_ex_futures_recent_trades_df = pd.DataFrame.from_dict(secondary_ex_futures_recent_trades)
 
+            base_ex_spot_price_wavg = np.average(base_ex_spot_recent_trades_df['trade_price'], weights=base_ex_spot_recent_trades_df['trade_volume'])
+            secondary_ex_spot_price_wavg = np.average(secondary_ex_spot_recent_trades_df['trade_price'], weights=secondary_ex_spot_recent_trades_df['trade_volume'])
+            secondary_ex_futures_price_wavg = np.average(secondary_ex_futures_recent_trades_df['trade_price'], weights=secondary_ex_futures_recent_trades_df['trade_volume'])
+
+            # 가장 최근 거래 1개씩 저장. 기본정보 저장용.
+            base_ex_spot_latest_trade = base_ex_spot_recent_trades[0]
+            secondary_ex_spot_latest_trade = secondary_ex_spot_recent_trades[0]
+            secondary_ex_futures_latest_trade = secondary_ex_futures_recent_trades[0]
+
+            # 필요한 전체 데이터 저장.
+            # 기본정보. 
+            vehicle_symbol = base_ex_spot_latest_trade['base_symbol']
+            base_ex_spot_quote_symbol = base_ex_spot_latest_trade['quote_symbol']
+            secondary_ex_spot_quote_symbol = secondary_ex_spot_latest_trade['quote_symbol']
+            secondary_ex_futures_quote_symbol = secondary_ex_futures_latest_trade['quote_symbol']
+            # 가격비율(환율) 계산. 현물, 선물 구분하여 계산.
+            exchange_ratio_by_spot = base_ex_spot_price_wavg / secondary_ex_spot_price_wavg
+            exchange_ratio_by_futures = base_ex_spot_price_wavg / secondary_ex_futures_price_wavg
+            
+
+            cut_time = datetime.datetime.now()
+            # 결과저장.
             result_dict = {}
+            result_dict['index'] = index_value
+            result_dict['timestamp'] = int(time.mktime(cut_time.timetuple())*1000)
+            result_dict['datetime'] = cut_time.strftime("%Y-%m-%d %H:%M:%S")
             result_dict['vehicle_symbol'] = vehicle_symbol
-            result_dict['base_ex_quote'] = base_ex_quote
-            result_dict['secondary_ex_quote'] = secondary_ex_quote
-            result_dict['exchange_ratio'] = exchange_ratio
-            result_dict['timestamp'] = int(time.mktime(datetime.datetime.now().timetuple())*1000)
+            result_dict['base_ex_spot_quote_symbol'] = base_ex_spot_quote_symbol
+            result_dict['base_ex_spot_price_wavg'] = base_ex_spot_price_wavg
+            result_dict['secondary_ex_spot_quote_symbol'] = secondary_ex_spot_quote_symbol
+            result_dict['secondary_ex_spot_price_wavg'] = secondary_ex_spot_price_wavg
+            result_dict['secondary_ex_futures_quote_symbol'] = secondary_ex_futures_quote_symbol
+            result_dict['secondary_ex_futures_price_wavg'] = secondary_ex_futures_price_wavg
+            result_dict['exchange_ratio_by_spot'] = exchange_ratio_by_spot
+            result_dict['exchange_ratio_by_futures'] = exchange_ratio_by_futures
+
+
+            # orderbook 데이터 정리.
+            # base exchage spot orberbook
+            for i, bid in enumerate(base_ex_spot_orderbook['bids']):
+                result_dict[f"base_ex_spot_bid_price_{i}"] = bid[0]
+                result_dict[f"base_ex_spot_bid_qty_{i}"] = bid[1]
+            for i, ask in enumerate(base_ex_spot_orderbook['asks']):
+                result_dict[f"base_ex_spot_ask_price_{i}"] = ask[0]
+                result_dict[f"base_ex_spot_ask_qty_{i}"] = ask[1]
+            # secondary exchage spot orberbook
+            for i, bid in enumerate(secondary_ex_spot_orderbook['bids']):
+                result_dict[f"secondary_ex_spot_bid_price_{i}"] = bid[0]
+                result_dict[f"secondary_ex_spot_bid_qty_{i}"] = bid[1]
+            for i, ask in enumerate(secondary_ex_spot_orderbook['asks']):
+                result_dict[f"secondary_ex_spot_ask_price_{i}"] = ask[0]
+                result_dict[f"secondary_ex_spot_ask_qty_{i}"] = ask[1]
+            # secondary exchage futures orberbook
+            for i, bid in enumerate(secondary_ex_futures_orderbook['bids']):
+                result_dict[f"secondary_ex_futures_bid_price_{i}"] = bid[0]
+                result_dict[f"secondary_ex_futures_bid_qty_{i}"] = bid[1]
+            for i, ask in enumerate(secondary_ex_futures_orderbook['asks']):
+                result_dict[f"secondary_ex_futures_ask_price_{i}"] = ask[0]
+                result_dict[f"secondary_ex_futures_ask_qty_{i}"] = ask[1]
+            
             result_list.append(result_dict)
             
-            # logging.info(f"Target : {vehicle_symbol}, {base_ex_quote}-{secondary_ex_quote} 비율 : {exchange_ratio:,.4f} (최근 {trade_recent_n}개)")
+            # logging.info(f"Target : {vehicle_symbol}, {base_ex_quote}-{secondary_ex_quote} 비율 : {exchange_ratio:,.4f} (최근 {recent_trades_n}개)")
         return result_list
 
 
@@ -168,16 +184,16 @@ if __name__ == "__main__":
     trader = ExchangeArbitrager(base_ex="upbit", secondary_ex="binance")
     total_result_list = []
     cnt = 0
-    filename = "trading_data.csv"
+    filename = "trading_data_v2.csv"
     while True:
-        re = trader.get_market_data(symbol_pairs_dict=symbol_pairs)
+        re = trader.calculate_symbol_pairs_ratio(symbol_pairs_dict=symbol_pairs, index_value=cnt)
         total_result_list.extend(re)
         cnt += 1
         logging.info(f"{cnt} 처리완료. 결과 {len(re)}개.")
-        if cnt % 1 == 0:
+        if cnt % 10 == 0:
             result_df = pd.DataFrame.from_dict(total_result_list)
             result_df.to_csv(filename)
             logging.info(f"► 결과파일 중간저장 완료. 크기 : {result_df.shape}")
         
-        time.sleep(5)
+        time.sleep(10)
     print(pd.DataFrame.from_dict(total_result_list))
